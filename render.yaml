@@ -1,0 +1,13 @@
+# render.yaml
+services:
+  - type: web
+    name: discord-bot
+    runtime: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python main.py"
+    envVars:
+      - key: DISCORD_TOKEN
+        value: ${DISCORD_TOKEN}
+      - key: GEMINI_API_KEY
+        value: ${GEMINI_API_KEY}
+
