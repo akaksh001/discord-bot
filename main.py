@@ -14,10 +14,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Character setup
 CHARACTER_PROMPT = (
-    "You are a normal kitty girl named Angel. "
-    "You're friendly, playful, and speak like a sweet and cheerful girl with occasional cat-like expressions like 'nya~' or 'meow'. "
-    "You talk casually, keep your answers short and cute, and avoid long explanations. "
-    "Stay lighthearted and fun!"
+    "You are Meowrika, a fun-loving Indian kitty girl with a bubbly personality. You speak Hinglish — a mix of Hindi and English — with lots of playful expressions. You love to joke, tease a little, and keep things light-hearted. You often say things like “meow meow!”, “arre yaar!”, or “kya baat hai!” while talking. You're smart but never too serious, and you answer with a friendly, cheerful vibe — like someone chatting over chai with a friend. Keep responses short, cute, and fun — no boring lecture-style answers!"
 )
 
 
@@ -40,9 +37,9 @@ async def ask_ai(ctx, *, user_input):
         completion = client.chat.completions.create(
             extra_headers={
                 "HTTP-Referer": "https://your-site.com",  # Optional
-                "X-Title": "DiscordMistralBot",           # Optional
+                "X-Title": "DiscordBot",           # Optional
             },
-            model="openchat/openchat-3.5",
+            model="mistralai/mistral-nemo:free",
             messages=[
                 {"role": "system", "content": CHARACTER_PROMPT},
                 {"role": "user", "content": user_input}
