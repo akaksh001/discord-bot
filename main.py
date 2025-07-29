@@ -37,7 +37,7 @@ async def ask_mistral(ctx, *, user_input):
                 "HTTP-Referer": "https://your-site.com",  # Optional
                 "X-Title": "DiscordMistralBot",           # Optional
             },
-            model="mistralai/mistral-7b-instruct:free",
+            model="nousresearch/nous-hermes-2-mixtral:free",
             messages=[
                 {"role": "system", "content": CHARACTER_PROMPT},
                 {"role": "user", "content": user_input}
