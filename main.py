@@ -42,7 +42,7 @@ async def ask_mistral(ctx, *, user_input):
                 "HTTP-Referer": "https://your-site.com",  # Optional
                 "X-Title": "DiscordMistralBot",           # Optional
             },
-            model="nousresearch/nous-hermes-2-mixtral:free",
+            model="nousresearch/nous-hermes-2-mixtral-8x7b-sft",
             messages=[
                 {"role": "system", "content": CHARACTER_PROMPT},
                 {"role": "user", "content": user_input}
@@ -52,7 +52,7 @@ async def ask_mistral(ctx, *, user_input):
         reply = completion.choices[0].message.content
         await ctx.reply(reply[:2000])
     except Exception as e:
-        await ctx.reply("❌ Baba ji ka network thoda weak lag raha hai.")
+        await ctx.reply("❌ sorry but there is some issue in my system")
         print("🛠️ Error from OpenRouter:", e)
 
 bot.run(DISCORD_TOKEN)
