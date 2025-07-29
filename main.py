@@ -28,35 +28,39 @@ CHARACTER_PROMPT = (
 async def on_ready():
     print(f"✅ Logged in as {bot.user}")
 
+
 @bot.command(name="ask")
 async def ask_mistral(ctx, *, user_input):
-    await ctx.trigger_typing()
+    async with ctx.typing():  # ✅ Correct way to show typing status
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json"
+        }
 
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json"
-    }
+        data = {
+            "model": "mistralai/mistral-7b-instruct",
+            "messages": [
+                {"role": "system", "content": CHARACTER_PROMPT},
+                {"role": "user", "content": user_input}
+            ]
+        }
 
-    data = {
-        "model": "mistralai/mistral-7b-instruct",
-        "messages": [
-            {"role": "system", "content": CHARACTER_PROMPT},
-            {"role": "user", "content": user_input}
-        ]
-    }
+        try:
+            response = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers=headers,
+                data=json.dumps(data)
+            )
+            result = response.json()
+            reply = result["choices"][0]["message"]["content"]
+            await ctx.reply(reply[:2000])
+        except Exception as e:
+            await ctx.reply("❌ Baba ji ka network thoda weak hai. Try again.")
+            print("Error:", e)
 
-    try:
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers=headers,
-            data=json.dumps(data)
-        )
-        result = response.json()
-        reply = result["choices"][0]["message"]["content"]
-        await ctx.reply(reply[:2000])  # max message length
-    except Exception as e:
-        await ctx.reply("❌ Error: Could not get reply.")
-        print("Error:", e)
+# Optional test command
+@bot.command()
+async def hello(ctx):
+    await ctx.send("Ram Ram! Main hoon Babaji 🙏😄")
 
 bot.run(DISCORD_TOKEN)
-
