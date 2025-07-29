@@ -1,9 +1,8 @@
 import discord
 import os
-import requests
-import json
 from discord.ext import commands
 from keep_alive import keep_alive
+from openai import OpenAI
 
 keep_alive()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -23,45 +22,35 @@ CHARACTER_PROMPT = (
 
 
 )
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=OPENROUTER_API_KEY,
+)
 
 @bot.event
 async def on_ready():
     print(f"✅ Logged in as {bot.user}")
 
-
 @bot.command(name="ask")
 async def ask_mistral(ctx, *, user_input):
-    async with ctx.typing():  # ✅ Correct way to show typing status
-        headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "Content-Type": "application/json"
-        }
+    await ctx.channel.typing()
 
-        data = {
-            "model": "mistralai/mistral-7b-instruct",
-            "messages": [
+    try:
+        completion = client.chat.completions.create(
+            extra_headers={
+                "HTTP-Referer": "https://your-site.com",  # Optional
+                "X-Title": "DiscordMistralBot",           # Optional
+            },
+            model="mistralai/mistral-7b-instruct:free",
+            messages=[
                 {"role": "system", "content": CHARACTER_PROMPT},
                 {"role": "user", "content": user_input}
             ]
-        }
-
-        try:
-            response = requests.post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers=headers,
-                data=json.dumps(data)
-            )
-            result = response.json()
-            reply = result["choices"][0]["message"]["content"]
-            await ctx.reply(reply[:2000])
-        except Exception as e:
-            await ctx.reply("❌ Baba ji ka network thoda weak hai. Try again.")
-            print("🛠️ Error from OpenRouter:", e)
-
-# Optional test command
-@bot.command()
-async def hello(ctx):
-    await ctx.send("Ram Ram! Main hoon Babaji 🙏😄")
+        )
+        reply = completion.choices[0].message.content
+        await ctx.reply(reply[:2000])
+    except Exception as e:
+        await ctx.reply("❌ Baba ji ka network thoda weak lag raha hai.")
+        print("🛠️ Error from OpenRouter:", e)
 
 bot.run(DISCORD_TOKEN)
-
