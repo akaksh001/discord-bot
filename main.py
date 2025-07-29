@@ -1,93 +1,62 @@
-# discord_gemini_bot/main.py
-#
-# A free-tier AI Discord bot powered by Gemini 1.5 Pro.
-# Commands:
-#   !ask  <prompt>      – normal chat response
-#   !short <prompt>     – concise reply (max 60 tokens)
-
-import os, asyncio, discord, google.generativeai as genai
-from dotenv import load_dotenv
+import discord
+import os
+import requests
+import json
+from discord.ext import commands
 from keep_alive import keep_alive
 
-keep_alive()  # keeps Render service alive
+keep_alive()
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-
-
-# ── 1  LOAD SECRETS ─────────────────────────────────────────────
-load_dotenv()  # reads .env
-TOKEN = os.getenv("DISCORD_TOKEN")
-APIKEY = os.getenv("GEMINI_API_KEY")
-if not TOKEN or not APIKEY:
-    raise RuntimeError("DISCORD_TOKEN or GEMINI_API_KEY missing")
-
-# ── 2  SET UP GEMINI MODEL ──────────────────────────────────────
-genai.configure(api_key=APIKEY)
-MODEL = genai.GenerativeModel("gemma-3-27b-it")
-
-
-# quick helper so we don’t block the Discord event loop
-async def gemini_reply(prompt: str, max_tokens=256) -> str:
-    loop = asyncio.get_running_loop()
-    try:
-        response = await loop.run_in_executor(
-            None,
-            lambda: MODEL.generate_content(
-                prompt,
-                safety_settings={                 # basic content filter
-                    "HARASSMENT": "BLOCK_ONLY_HIGH",
-                    "HATE":       "BLOCK_ONLY_HIGH",
-                    "SEXUAL":     "BLOCK_ONLY_HIGH",
-                },
-                generation_config={
-                    "temperature": 0.7,
-                    "max_output_tokens": max_tokens,
-                },
-            ),
-        )
-        return response.text.strip()
-    except Exception as err:
-        print("Gemini error:", err)
-        return "⚠️ Sorry, I couldn’t process that just now."
-
-
-# ── 3  DISCORD BOT ──────────────────────────────────────────────
 intents = discord.Intents.default()
 intents.message_content = True
-bot = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
+# Character setup
+CHARACTER_PROMPT = (
+    "You are Baba Chillanand, a modern Indian spiritual guru with deep wisdom and a great sense of humor. "
+    "You give advice about life, love, and inner peace in a relaxed and funny way. "
+    "You often mix Sanskrit, Hindi, and English words, and say things like 'beta', 'shanti milegi', 'vibe high', and 'isko universe samjhega'. "
+    "You speak like a wise baba but use memes, internet lingo, and modern slang sometimes. "
+    "Always keep your tone peaceful, humorous, and slightly mysterious. Never get angry. Speak like a baba from Instagram Reels."
+
+
+)
 
 @bot.event
 async def on_ready():
-    print(f"✅ Logged in as {bot.user} (ID {bot.user.id})")
+    print(f"✅ Logged in as {bot.user}")
 
+@bot.command(name="ask")
+async def ask_mistral(ctx, *, user_input):
+    await ctx.trigger_typing()
 
-@bot.event
-async def on_message(msg: discord.Message):
-    if msg.author == bot.user:
-        return
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
-    content = msg.content.strip()
-    if content.startswith("!ask "):
-        prompt = content[5:].strip()
-        if not prompt:
-            return await msg.reply("Usage: `!ask your question`")
+    data = {
+        "model": "mistralai/mistral-7b-instruct",
+        "messages": [
+            {"role": "system", "content": CHARACTER_PROMPT},
+            {"role": "user", "content": user_input}
+        ]
+    }
 
-        async with msg.channel.typing():
-            reply = await gemini_reply(prompt, 256)
-        await msg.reply(reply, mention_author=False)
+    try:
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            data=json.dumps(data)
+        )
+        result = response.json()
+        reply = result["choices"][0]["message"]["content"]
+        await ctx.reply(reply[:2000])  # max message length
+    except Exception as e:
+        await ctx.reply("❌ Error: Could not get reply.")
+        print("Error:", e)
 
-    elif content.startswith("!short "):
-        prompt = content[7:].strip()
-        if not prompt:
-            return await msg.reply("Usage: `!short your question`")
+bot.run(DISCORD_TOKEN)
 
-        async with msg.channel.typing():
-            reply = await gemini_reply(prompt, 60)
-        await msg.reply(reply, mention_author=False)
-
-
-
-
-
-# ── 4  RUN ──────────────────────────────────────────────────────
-bot.run(TOKEN)
