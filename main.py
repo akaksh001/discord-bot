@@ -33,7 +33,7 @@ async def on_ready():
     print(f"✅ Logged in as {bot.user}")
 
 @bot.command(name="ask")
-async def ask_mistral(ctx, *, user_input):
+async def ask_ai(ctx, *, user_input):
     await ctx.channel.typing()
 
     try:
@@ -42,7 +42,7 @@ async def ask_mistral(ctx, *, user_input):
                 "HTTP-Referer": "https://your-site.com",  # Optional
                 "X-Title": "DiscordMistralBot",           # Optional
             },
-            model="nousresearch/nous-hermes-2-mixtral-8x7b-sft",
+            model="openchat/openchat-3.5",
             messages=[
                 {"role": "system", "content": CHARACTER_PROMPT},
                 {"role": "user", "content": user_input}
