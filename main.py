@@ -56,7 +56,7 @@ async def ask_mistral(ctx, *, user_input):
             await ctx.reply(reply[:2000])
         except Exception as e:
             await ctx.reply("❌ Baba ji ka network thoda weak hai. Try again.")
-            print("Error:", e)
+        print("🛠️ Error from OpenRouter:", e)
 
 # Optional test command
 @bot.command()
@@ -64,3 +64,4 @@ async def hello(ctx):
     await ctx.send("Ram Ram! Main hoon Babaji 🙏😄")
 
 bot.run(DISCORD_TOKEN)
+
