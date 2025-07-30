@@ -22,8 +22,6 @@ CHARACTER_PROMPT = (
 )
 
 
-
-
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=OPENROUTER_API_KEY,
@@ -33,6 +31,7 @@ client = OpenAI(
 async def on_ready():
     print(f"✅ Logged in as {bot.user}")
 
+@commands.max_concurrency(1, per=commands.BucketType.user)
 @bot.command(name="ask")
 async def ask_ai(ctx, *, user_input):
     await ctx.channel.typing()
