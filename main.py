@@ -4,6 +4,7 @@ import asyncio
 from discord.ext import commands
 from keep_alive import keep_alive
 from openai import OpenAI
+from discord.ext.commands import cooldown, BucketType
 
 
 keep_alive()
@@ -32,6 +33,7 @@ async def on_ready():
     print(f"✅ Logged in as {bot.user}")
 
 @commands.max_concurrency(1, per=commands.BucketType.user)
+@cooldown(rate=1, per=15, type=BucketType.user)
 @bot.command(name="ask")
 async def ask_ai(ctx, *, user_input):
     await ctx.channel.typing()
@@ -42,7 +44,10 @@ async def ask_ai(ctx, *, user_input):
         completion = client.chat.completions.create(
             extra_headers={
                 "HTTP-Referer": "https://your-site.com",  # Optional
-                "X-Title": "DiscordBot",           # Optional
+                "X-Title": "DiscordBot", 
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                "Content-Type": "application/json"         
+                                    
             },
             model="deepseek/deepseek-chat-v3-0324:free",
             messages=[
