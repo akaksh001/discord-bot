@@ -40,26 +40,28 @@ async def ask_ai(ctx, *, user_input):
 
     await asyncio.sleep(5) 
 
-    try:
-        completion = client.chat.completions.create(
-            extra_headers={
-                "HTTP-Referer": "https://your-site.com",  # Optional
-                "X-Title": "DiscordBot", 
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                "Content-Type": "application/json"         
-                                    
-            },
+    try: 
+        completion = await asyncio.to_thread(
+            client.chat.completions.create,
             model="deepseek/deepseek-chat-v3-0324:free",
             messages=[
                 {"role": "system", "content": CHARACTER_PROMPT},
                 {"role": "user", "content": user_input}
             ],
-            max_tokens=100
+            max_tokens=100,
+            extra_headers={
+                "HTTP-Referer": "https://your-site.com",
+                "X-Title": "DiscordBot",
+                "User-Agent": "Mozilla/5.0",
+                "Content-Type": "application/json"
+            },
+            timeout=15
         )
         reply = completion.choices[0].message.content
         await ctx.reply(reply[:2000])
+
     except Exception as e:
-        await ctx.reply("❌ Mera Tel khatam hai ab ")
+        await ctx.reply("❌ Mera tel khatam ho gaya, thoda ruk ja bhai.")
         print("🛠️ Error from OpenRouter:", e)
 
 bot.run(DISCORD_TOKEN)
