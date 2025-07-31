@@ -59,6 +59,7 @@ async def ask_ai(ctx, *, user_input):
             model="deepseek/deepseek-chat-v3-0324:free",
             messages=[
                 {"role": "system", "content": CHARACTER_PROMPT},
+                {"role": "system", "content": f"The user said: \"{user_input}\". Respond in the same language style."},
                 {"role": "user", "content": user_input}
             ],
             max_tokens=100,
